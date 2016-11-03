@@ -62,16 +62,24 @@ public class MainActivity extends AppCompatActivity {
         Log.d("d", "hashMapSize : " + hashMap.size());
         Log.d("d", "hashMap.keySet() : " + hashMap.keySet().size());
 
-        for (String name : hashMap.keySet()) {
+
+
+//        for (String name : hashMap.keySet()) {
             // Log.d("d", "dd");
 
-            Log.d("d", name);
-            Log.d("e", hashMap.get(name));
+//          Log.d("d", name);
+//          Log.d("e", hashMap.get(name));
             // Log.d("d", "  " + name + " : " + hashMap.get(name) + "  ");
             // String key = name;
             // Log.d("d", name + " < ");
             // String value = hashMap.get(name).toString();
             // Log.d("d", key + " : " + value);
+//        }
+
+        String[] keys = hashMap.keySet().toArray(new String[hashMap.keySet().size()]);
+        for (int i = 0; i < keys.length; i++) {
+            Log.d("d", "dd");
+            Log.d("d", keys[i] + " : " + hashMap.get(keys[i]).toString());
         }
     }
 
