@@ -2,7 +2,12 @@ package com.wordtest;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.method.KeyListener;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import java.util.HashMap;
@@ -10,14 +15,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+    String wordLinkLines[];
+    EditText edtInput;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // String wordMapLines[] = FileMgr.readRawTextFile(this, R.raw.wordmap, "UTF-8");
-        // HashMap<String, String> linkTree = getLinkTree(wordMapLines);
+//      String wordMapLines[] = FileMgr.readRawTextFile(this, R.raw.wordmap, "UTF-8");
+//      HashMap<String, String> linkTree = getLinkTree(wordMapLines);
 
 //        String print = "";
 //        for (String key : linkTree.keySet()) {
@@ -25,27 +32,39 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //        print(print);
 
-        String wordLinkLines[] = FileMgr.readRawTextFile(this, R.raw.wordlink, "UTF-8");
-        HashMap<String, String> hashMap = new HashMap<String, String>();
-        for (String wordLink : wordLinkLines) {
-            String wl[] = wordLink.split(" : ");
-            hashMap.put(wl[0], wl[1]);
-        }
-
-//        String print = "";
-//        for (Map.Entry<String, String> ent : hashMap.entrySet()) {
-//            print += ent.toString() + "\n";
+        wordLinkLines = FileMgr.readRawTextFile(this, R.raw.wordlink, "UTF-8");
+//        HashMap<String, String> hashMap = new HashMap<String, String>();
+//        for (String wordLink : wordLinkLines) {
+//            String wl[] = wordLink.split(" : ");
+//            hashMap.put(wl[0], wl[1]);
 //        }
-//        print(print);
 
-        Map<String, String> map = getContainsMap(hashMap, "노랑");
 
-        String print = "";
-        for (Map.Entry<String, String> ent : map.entrySet()) {
-            print += ent.toString() + "\n";
-        }
-        print(print);
+        edtInput = (EditText) findViewById(R.id.edtInput);
+        edtInput.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                switch(keyCode) {
+                    case KeyEvent.KEYCODE_ENTER :
+                        msgSend();
+                        break;
+                }
+                return false;
+            }
+        });
 
+        findViewById(R.id.btnEnter).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                msgSend();
+            }
+        });
+
+    }
+
+
+    public void msgSend(){
+        getLinkTree(wordLinkLines);
     }
 
     public Map<String, String> getContainsMap(HashMap<String, String> hashMap, String standKey) {
