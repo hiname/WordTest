@@ -1,90 +1,112 @@
 package com.wordtest;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        String dataList[] = getRawText(R.raw.link).split("\n");
-        class DataItem {
-            int tabCnt = 0;
-            String data = "";
 
-            public DataItem(int tabCnt, String data) {
-                this.tabCnt = tabCnt;
-                this.data = data;
-            }
+        // String wordMapLines[] = FileMgr.readRawTextFile(this, R.raw.wordmap, "UTF-8");
+        // HashMap<String, String> linkTree = getLinkTree(wordMapLines);
+
+//        String print = "";
+//        for (String key : linkTree.keySet()) {
+//            print += key + " : " + linkTree.get(key) + "\n";
+//        }
+//        print(print);
+
+        String wordLinkLines[] = FileMgr.readRawTextFile(this, R.raw.wordlink, "UTF-8");
+        HashMap<String, String> hashMap = new HashMap<String, String>();
+        for (String wordLink : wordLinkLines) {
+            String wl[] = wordLink.split(" : ");
+            hashMap.put(wl[0], wl[1]);
         }
+
+//        String print = "";
+//        for (Map.Entry<String, String> ent : hashMap.entrySet()) {
+//            print += ent.toString() + "\n";
+//        }
+//        print(print);
+
+        Map<String, String> map = getContainsMap(hashMap, "노랑");
+
+        String print = "";
+        for (Map.Entry<String, String> ent : map.entrySet()) {
+            print += ent.toString() + "\n";
+        }
+        print(print);
+
+    }
+
+    public Map<String, String> getContainsMap(HashMap<String, String> hashMap, String standKey) {
+        Map<String, String> map = new LinkedHashMap<String, String>();
+
+        for (String nowKey : hashMap.keySet()) {
+            if (nowKey.contains(standKey))
+                map.put(nowKey, hashMap.get(nowKey));
+        }
+        return map;
+    }
+
+    public HashMap<String, String> getLinkTree(String[] dataList) {
         DataItem[] dataItemList = new DataItem[dataList.length];
         for (int i = 0; i < dataList.length; i++) {
             String data = dataList[i];
             String[] dataTabSplit = data.split("\t");
             int tabCnt = dataTabSplit.length - 1;
-            // dataList[i] = tabCnt + "@" + dataTabSplit[tabCnt];
             dataItemList[i] = new DataItem(tabCnt, dataTabSplit[tabCnt]);
         }
+
         HashMap<String, String> hashMap = new HashMap<String, String>();
         for (int i = 0; i < dataItemList.length - 1; i++) {
-            DataItem nowDataItem = dataItemList[i];
-            int nowTabCnt = nowDataItem.tabCnt;
-            String nowData = nowDataItem.data;
+            DataItem standDataItem = dataItemList[i];
+            int standTabCnt = standDataItem.tabCnt;
+            String standData = standDataItem.data;
             for (int j = i + 1; j < dataItemList.length; j++) {
-                DataItem tarDataItem = dataItemList[j];
-                int tarTabCnt = tarDataItem.tabCnt;
-                String tarData = tarDataItem.data;
-                if (nowTabCnt == tarTabCnt) {
+                DataItem nowDataItem = dataItemList[j];
+                int nowTabCnt = nowDataItem.tabCnt;
+                String nowData = nowDataItem.data;
+                if (standTabCnt >= nowTabCnt) {
                     break;
-                } else if (nowTabCnt == (tarTabCnt - 1)) {
-                    // add
-                    String hashVal = hashMap.get(nowData);
-                    String putData = "";
-                    if (hashVal == null)
-                        putData = tarData;
-                    else
-                        putData = hashVal + "," + tarData;
-                    hashMap.put(nowData, putData);
+                } else if (standTabCnt == (nowTabCnt - 1)) {
+                    addHashItem(hashMap, standData, nowData);
+                    addHashItem(hashMap, nowData, standData);
                 }
             }
         }
-        Log.d("d", "hashMapSize : " + hashMap.size());
-        Log.d("d", "hashMap.keySet() : " + hashMap.keySet().size());
 
+        return hashMap;
+    }
 
+    public void addHashItem(HashMap<String, String> hashMap, String key, String value) {
+        String standVal = hashMap.get(key);
+        String putData = "";
 
-//        for (String name : hashMap.keySet()) {
-            // Log.d("d", "dd");
+        if (standVal == null)
+            putData = value;
+        else
+            putData = standVal + "," + value;
 
-//          Log.d("d", name);
-//          Log.d("e", hashMap.get(name));
-            // Log.d("d", "  " + name + " : " + hashMap.get(name) + "  ");
-            // String key = name;
-            // Log.d("d", name + " < ");
-            // String value = hashMap.get(name).toString();
-            // Log.d("d", key + " : " + value);
-//        }
+        hashMap.put(key, putData);
+    }
 
-        String[] keys = hashMap.keySet().toArray(new String[hashMap.keySet().size()]);
-        for (int i = 0; i < keys.length; i++) {
-            Log.d("d", "dd");
-            Log.d("d", keys[i] + " : " + hashMap.get(keys[i]).toString());
-        }
+    public void print(String data) {
+        print(new String[]{data});
     }
 
     public void print(String[] dataList) {
         String print = "";
+
         for (String data : dataList) {
             print += data + "\n";
         }
@@ -92,22 +114,5 @@ public class MainActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.textView)).setText(print);
     }
 
-    public String getRawText(int resId) {
-        String data = null;
-        InputStream inputStream = getResources().openRawResource(resId);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        int i;
-        try {
-            i = inputStream.read();
-            while (i != -1) {
-                byteArrayOutputStream.write(i);
-                i = inputStream.read();
-            }
-            data = new String(byteArrayOutputStream.toByteArray(), "MS949");
-            inputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return data;
-    }
+
 }
